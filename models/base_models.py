@@ -44,6 +44,7 @@ class ConvBlock(nn.Module):
 
 
 class VGG16(nn.Module):
+    # TODO load pretrained weights
     def __init__(self,in_channels,out_channels):
         super(VGG16, self).__init__()
         self.conv_block_1 = ConvBlock(in_channels=in_channels,out_channels=64)
@@ -60,8 +61,7 @@ class VGG16(nn.Module):
         self.conv_3 = conv2d_block(in_channels=512,out_channels=512)
         self.max_pool_3 = nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
 
-        self.conv_block_6 = ConvBlock(in_channels=512, out_channels=out_channels, pool=False)
-
+        self.conv_block_6_7 = ConvBlock(in_channels=512, out_channels=out_channels, pool=False)
 
     def forward(self,x):
         x = self.conv_block_1(x)
@@ -72,58 +72,99 @@ class VGG16(nn.Module):
 
         x = self.conv_block_4(x)
         x = self.conv_2(x)
-        conv4_3 = x # get value which will be fed to SSD
+        conv4 = x # value will be fed to SSD ratio to input:8
         x = self.max_pool_2(x)
 
         x = self.conv_block_5(x)
         x = self.conv_3(x)
         x = self.max_pool_3(x)
 
-        x = self.conv_block_6(x)
+        conv7 = self.conv_block_6_7(x)  # value will be fed to SSD ratio to input:16
 
-        return x,conv4_3
+        return conv4,conv7
 
+    def load_weights(self):
+        # TODO fill in
+        pass
 
 class SSDExtension(nn.Module):
+    # TODO add xavier init
     def __init__(self,in_channels,out_channels):
         super(SSDExtension, self).__init__()
-        self.conv_1 = nn.Conv2d(in_channels, 256, kernel_size=(1, 1), stride=(1, 1))
-        self.conv_2 = nn.Conv2d(256, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
-        self.conv_3 = nn.Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1))
-        self.conv_4 = nn.Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
-        self.conv_5 = nn.Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1))
-        self.conv_6 = nn.Conv2d(128, 256, kernel_size=(3, 3), stride=(1, 1))
-        self.conv_7 = nn.Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1))
-        self.conv_8 = nn.Conv2d(128, out_channels, kernel_size=(3, 3), stride=(1, 1))
+        self.conv_8_1 = nn.Conv2d(in_channels, 256, kernel_size=(1, 1), stride=(1, 1))
+        self.conv_8_2 = nn.Conv2d(256, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
+
+        self.conv_9_1 = nn.Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1))
+        self.conv_9_2 = nn.Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
+
+        self.conv_10_1 = nn.Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1))
+        self.conv_10_2 = nn.Conv2d(128, 256, kernel_size=(3, 3), stride=(1, 1))
+
+        self.conv_11_1 = nn.Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1))
+        self.conv_11_2 = nn.Conv2d(128, out_channels, kernel_size=(3, 3), stride=(1, 1))
 
     def forward(self,x):
-        x = F.relu(self.conv_1(x))
-        x = F.relu(self.conv_2(x))
-        conv2 = x
-        x = F.relu(self.conv_3(x))
-        x = F.relu(self.conv_4(x))
-        conv4 = x
-        x = F.relu(self.conv_5(x))
-        x = F.relu(self.conv_6(x))
-        conv6 = x
-        x = F.relu(self.conv_7(x))
-        x = F.relu(self.conv_8(x))
+        x = F.relu(self.conv_8_1(x))
+        x = F.relu(self.conv_8_2(x))
+        conv8 = x
 
-        return x,(conv2,conv4,conv6)
+        x = F.relu(self.conv_9_1(x))
+        x = F.relu(self.conv_9_2(x))
+        conv9 = x
+
+        x = F.relu(self.conv_10_1(x))
+        x = F.relu(self.conv_10_2(x))
+        conv10 = x
+
+        x = F.relu(self.conv_11_1(x))
+        x = F.relu(self.conv_11_2(x))
+        conv11 = x
+        return conv8,conv9,conv10,conv11
+
+    def xavier_init_params(self):
+        # TODO fill in
+        pass
 
 
-"""
+
 vgg = VGG16(3,1024)
-print(vgg)
 
 ssd = SSDExtension(1024,256)
-print(ssd)
 
+x = torch.rand((1,3,300,300))
 x = torch.rand((1,3,512,512))
 out1 = vgg(x)
 
-print(out1.size())
-out2 = ssd(out1)
-print(out2.size())
-"""
+for i in out1:
+    print(i.size())
 
+out2 = ssd(out1[1])
+
+
+for i in out2:
+    print(i.size())
+
+print("-"*10)
+x = torch.rand((1,3,300,300))
+out1 = vgg(x)
+
+for i in out1:
+    print(i.size())
+
+out2 = ssd(out1[1])
+
+
+for i in out2:
+    print(i.size())
+
+
+"""
+ssd = SSDExtension(1024,256)
+x = torch.rand((1,1024,19,19))
+
+out = ssd(x)
+
+for i in out:
+    print(i.size())
+
+"""

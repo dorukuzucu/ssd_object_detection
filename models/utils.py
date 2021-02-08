@@ -1,9 +1,7 @@
+from itertools import product
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable
-import os
+from math import sqrt
 
 
-def generate_anchors():
-    pass
+def generate_priors(image_size):
+   pass
