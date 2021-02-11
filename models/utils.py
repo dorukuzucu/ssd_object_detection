@@ -3,5 +3,5 @@ import torch
 from math import sqrt
 
 
-def generate_priors(image_size):
+def generate_priors(image_size=300):
    pass

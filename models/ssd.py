@@ -7,6 +7,7 @@ from models.base_models import VGG16,SSDExtension
 
 
 class DetectionLayer(nn.Module):
+    # TODO parameterize input and output channels
     def __init__(self,class_no):
         super(DetectionLayer, self).__init__()
         self.class_no = class_no
@@ -64,7 +65,7 @@ class SSD(nn.Module):
         self.state = state
         self.num_classes = num_classes
         self.size = ssd_model
-        self.priors = generate_priors(500)
+        self.priors = generate_priors(300)
 
         self.vgg_backbone = VGG16(in_channels=3,out_channels=1024)
         self.ssd_extension = SSDExtension(in_channels=1024,out_channels=256)

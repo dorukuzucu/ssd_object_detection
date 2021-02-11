@@ -6,21 +6,8 @@ import glob
 import random
 from PIL import Image
 import xml.etree.ElementTree as ET
+import torch
 
-
-def get_from_objects(xml_file,item="bbox"):
-    obj_list = xml_file.findall("object")
-    bounding_boxes = []
-    for cls in obj_list:
-        class_name = cls.find("name").text
-        if item=="label":
-            bounding_boxes.append(class_name)
-        elif item=="bbox":
-            bbox = [int(cls.find("bndbox").find("xmin").text),int(cls.find("bndbox").find("ymin").text),int(cls.find("bndbox").find("xmax").text),int(cls.find("bndbox").find("ymax").text)]
-            bounding_boxes.append((class_name,bbox))
-        else:
-            raise Exception("Please input 'bbox' or 'label'")
-    return bounding_boxes
 
 
 class RemMarketDataset(Dataset):
@@ -30,9 +17,9 @@ class RemMarketDataset(Dataset):
     def __init__(self,root_dir,
                 train=True,
                 transform=transforms.Compose([
-                transforms.Grayscale(),
-                transforms.Resize((224, 224)),
-                transforms.ToTensor(),
+                    transforms.Resize((300, 300)),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
                 ]),
                 train_val_split=0.8,
                 in_memory=False,
@@ -70,7 +57,7 @@ class RemMarketDataset(Dataset):
         cls_labels = []
         for file in annotations:
             xml_file = ET.parse(file)
-            cls_labels+=get_from_objects(xml_file, "label")
+            cls_labels+=self._parse_xml_file(xml_file)["labels"]
         unique_cls_labels = sorted(set(cls_labels))
         return {cls_label: idx for idx, cls_label in enumerate(unique_cls_labels)}
 
@@ -83,6 +70,26 @@ class RemMarketDataset(Dataset):
             return [(self._load_image(dataset[idx][0]), self._load_target(dataset[idx][1])) for idx in range(len(dataset))]
         else:
             return dataset
+
+    def _parse_xml_file(self,xml_file):
+
+        img_width = int(xml_file.find("size").find("width").text)
+        img_height = int(xml_file.find("size").find("height").text)
+        resize_factor = torch.FloatTensor([img_width,img_height,img_width,img_height]).unsqueeze(0)
+
+        obj_list = xml_file.findall("object")
+        classes = []
+        bounding_boxes = []
+        for cls in obj_list:
+            class_name = cls.find("name").text.lower()
+            classes.append(class_name)
+            bbox = [int(cls.find("bndbox").find("xmin").text), int(cls.find("bndbox").find("ymin").text),
+                    int(cls.find("bndbox").find("xmax").text), int(cls.find("bndbox").find("ymax").text)]
+            bounding_boxes.append(bbox)
+
+        b_boxes = torch.FloatTensor(bounding_boxes)/resize_factor
+
+        return {"labels": classes, "boxes": b_boxes}
 
     def _train_val_split(self, split,seed):
         """
@@ -118,9 +125,13 @@ class RemMarketDataset(Dataset):
         :return: read xml file, parse bounding boxes
         """
         xml_file = ET.parse(path)
-        objects = get_from_objects(xml_file,"bbox")
-        # TODO convert return type to tensor!!!
-        return [(self.label_lookup[obj[0]], obj[1] ) for obj in objects]
+        content = self._parse_xml_file(xml_file)
+        classes = content["labels"]
+        b_boxes = content["boxes"]
+
+        coded_labels = [self.label_lookup[cls] for cls in classes]
+
+        return {"labels":coded_labels,"boxes": b_boxes}
 
     def __len__(self):
         """
