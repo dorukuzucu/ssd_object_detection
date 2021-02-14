@@ -9,8 +9,7 @@ import xml.etree.ElementTree as ET
 import torch
 
 
-
-class RemMarketDataset(Dataset):
+class MarketDataset(Dataset):
     """
     Dataset class for Market Dataset
     """
@@ -28,10 +27,9 @@ class RemMarketDataset(Dataset):
         self.train = train
         self.transform = transform
         self.in_memory = in_memory
-        self.label_lookup = self._get_unique_cls_labels()
+        self.label_lookup = self._get_unique_cls_labels(root_dir)
         self.image_data = self._read_data(root_dir)
         self.data_set = self._train_val_split(split=train_val_split,seed=seed)
-        print("init")
 
     def _read_data(self,path):
         """
@@ -47,12 +45,13 @@ class RemMarketDataset(Dataset):
         dataset = [(images[idx],target[idx]) for idx in range(len(images)) ]
         return dataset
 
-    def _get_unique_cls_labels(self):
+    def _get_unique_cls_labels(self,path):
         """
         Reads all xml files in given path, uses them to create a look up dictionary to assign integer values to labels
 
         :return: unique class labels to construct a lookup dictionary to assign "integer labels" to "string class names"
         """
+        # TODO add background class
         annotations = sorted(glob.glob(path + os.sep + "*.xml"))
         cls_labels = []
         for file in annotations:
@@ -131,7 +130,7 @@ class RemMarketDataset(Dataset):
 
         coded_labels = [self.label_lookup[cls] for cls in classes]
 
-        return {"labels":coded_labels,"boxes": b_boxes}
+        return {"labels":torch.FloatTensor(coded_labels),"boxes": b_boxes}
 
     def __len__(self):
         """
@@ -144,12 +143,6 @@ class RemMarketDataset(Dataset):
             return self.data_set[idx]
         else:
             return (
-                self._load_image(self.data_set[idx]),
-                self._load_target(self.data_set[idx])
+                self._load_image(self.data_set[idx][0]),
+                self._load_target(self.data_set[idx][1])
             )
-
-
-path = os.path.join(Path(__file__).parents[2],"data","train")
-dataset = RemMarketDataset(path,in_memory=True)
-
-print("done")

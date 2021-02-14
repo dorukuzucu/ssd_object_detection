@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 import torch.nn.init as init
-
+import torchvision
 
 def conv2d_block(in_channels,out_channels, bn=False):
     """
@@ -63,6 +63,9 @@ class VGG16(nn.Module):
 
         self.conv_block_6_7 = ConvBlock(in_channels=512, out_channels=out_channels, pool=False)
 
+        self.load_trained_weights()
+
+
     def forward(self,x):
         x = self.conv_block_1(x)
         x = self.conv_block_2(x)
@@ -83,13 +86,26 @@ class VGG16(nn.Module):
 
         return conv4,conv7
 
-    def load_weights(self):
-        # TODO fill in
-        pass
+    def load_trained_weights(self):
+
+        state_dict = self.state_dict()
+        params = list(state_dict)
+
+        trained_state_dict = torchvision.models.vgg16_bn(pretrained=True).state_dict()
+        trained_params = list(trained_state_dict)
+
+        for idx, param in enumerate(params[0:44]):
+            state_dict[param] = trained_state_dict[trained_params[idx]]
+
+        for idx, param in enumerate(params[49:65]):
+            state_dict[param] = trained_state_dict[trained_params[idx]]
+
+        for idx, param in enumerate(params[70:86]):
+            state_dict[param] = trained_state_dict[trained_params[idx]]
+
 
 class SSDExtension(nn.Module):
-    # TODO add xavier init
-    def __init__(self,in_channels,out_channels):
+    def __init__(self,in_channels=1024,out_channels=256):
         super(SSDExtension, self).__init__()
         self.conv_8_1 = nn.Conv2d(in_channels, 256, kernel_size=(1, 1), stride=(1, 1))
         self.conv_8_2 = nn.Conv2d(256, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
@@ -102,6 +118,8 @@ class SSDExtension(nn.Module):
 
         self.conv_11_1 = nn.Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1))
         self.conv_11_2 = nn.Conv2d(128, out_channels, kernel_size=(3, 3), stride=(1, 1))
+
+        self._xavier_init()
 
     def forward(self,x):
         x = F.relu(self.conv_8_1(x))
@@ -121,50 +139,8 @@ class SSDExtension(nn.Module):
         conv11 = x
         return conv8,conv9,conv10,conv11
 
-    def xavier_init_params(self):
-        # TODO fill in
-        pass
+    def _xavier_init(self):
+        for child in self.children():
+            if isinstance(child,nn.Conv2d):
+                nn.init.xavier_uniform_(child.weight)
 
-
-
-vgg = VGG16(3,1024)
-
-ssd = SSDExtension(1024,256)
-
-x = torch.rand((1,3,300,300))
-x = torch.rand((1,3,512,512))
-out1 = vgg(x)
-
-for i in out1:
-    print(i.size())
-
-out2 = ssd(out1[1])
-
-
-for i in out2:
-    print(i.size())
-
-print("-"*10)
-x = torch.rand((1,3,300,300))
-out1 = vgg(x)
-
-for i in out1:
-    print(i.size())
-
-out2 = ssd(out1[1])
-
-
-for i in out2:
-    print(i.size())
-
-
-"""
-ssd = SSDExtension(1024,256)
-x = torch.rand((1,1024,19,19))
-
-out = ssd(x)
-
-for i in out:
-    print(i.size())
-
-"""
