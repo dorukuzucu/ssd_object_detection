@@ -1,7 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable
 from models.utils import generate_priors
 from models.base_models import VGG16,SSDExtension
 

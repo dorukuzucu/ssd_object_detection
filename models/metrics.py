@@ -1,6 +1,4 @@
 from torch import nn
-import torch
-
 from models.utils import *
 
 
@@ -34,10 +32,10 @@ class IOUMetric:
 
 
 class MultiboxLoss():
-    def __init__(self,num_cls,priors,overlap=0.5,hard_neg_ratio=3,alpha=1,gpu_flag=True):
+    def __init__(self,num_cls,priors=None,overlap=0.5,hard_neg_ratio=3,alpha=1,gpu_flag=True):
         super(MultiboxLoss, self).__init__()
         self.num_cls = num_cls
-        self.priors = priors
+        self.priors = priors if priors is not None else generate_priors()
         self.overlap = overlap
         self.hard_neg_ratio = hard_neg_ratio
         self.alpha = alpha
@@ -45,6 +43,7 @@ class MultiboxLoss():
         self.iou = IOUMetric()
         self.l1 = nn.L1Loss()
         self.ce = nn.CrossEntropyLoss(reduce=False)
+
 
     def calculate(self, preds, target):
         """

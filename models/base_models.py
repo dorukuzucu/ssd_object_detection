@@ -1,8 +1,6 @@
-import torch
-import torch.nn.functional as F
-import torch.nn as nn
-import torch.nn.init as init
 import torchvision
+import torch.nn as nn
+import torch.nn.functional as F
 
 def conv2d_block(in_channels,out_channels, bn=False):
     """

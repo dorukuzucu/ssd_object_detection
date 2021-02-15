@@ -1,18 +1,19 @@
 import os
-from torch.utils.data import Dataset
-from torchvision import transforms
-from pathlib import Path
 import glob
-import random
-from PIL import Image
-import xml.etree.ElementTree as ET
 import torch
+import random
+import xml.etree.ElementTree as ET
+
+from PIL import Image
+from torchvision import transforms
+from torch.utils.data import Dataset
 
 
 class MarketDataset(Dataset):
     """
     Dataset class for Market Dataset
     """
+    # TODO add collate method
     def __init__(self,root_dir,
                 train=True,
                 transform=transforms.Compose([
@@ -51,14 +52,15 @@ class MarketDataset(Dataset):
 
         :return: unique class labels to construct a lookup dictionary to assign "integer labels" to "string class names"
         """
-        # TODO add background class
         annotations = sorted(glob.glob(path + os.sep + "*.xml"))
         cls_labels = []
         for file in annotations:
             xml_file = ET.parse(file)
             cls_labels+=self._parse_xml_file(xml_file)["labels"]
         unique_cls_labels = sorted(set(cls_labels))
-        return {cls_label: idx for idx, cls_label in enumerate(unique_cls_labels)}
+        look_up = {cls_label: idx+1 for idx, cls_label in enumerate(unique_cls_labels)}
+        look_up["background"] = 0
+        return look_up
 
     def _load_dataset(self,dataset):
         """
