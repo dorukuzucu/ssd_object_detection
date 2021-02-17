@@ -14,6 +14,7 @@ class MarketDataset(Dataset):
     Dataset class for Market Dataset
     """
     # TODO add collate method
+    # TODO check dataset-model output coordinates to match them
     def __init__(self,root_dir,
                 train=True,
                 transform=transforms.Compose([

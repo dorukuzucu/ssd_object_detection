@@ -1,7 +1,8 @@
-import glob
 import os
-from pathlib import Path
+import glob
 import shutil
+
+from pathlib import Path
 
 
 def split_dataset(path=None,train_test_split=0.85):
@@ -21,4 +22,5 @@ def split_dataset(path=None,train_test_split=0.85):
         shutil.copy2(data,test_path)
     print("Data is split into Train and Test sets. Ratio is {}".format(train_test_split))
 
-
+def collate_fn(batch):
+    pass

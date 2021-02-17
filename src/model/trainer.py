@@ -46,9 +46,9 @@ class Trainer:
         for epoch in range(n_epochs):
             self.train_epoch()
             print("Epoch:{} Loss:{}".format(epoch, self.metrics["train_loss"][epoch]))
-            if (epoch+1) % val_every == 0:
+            if epoch%val_every == 0:
                 self.optimizer.zero_grad(set_to_none=True)
-                self.evaluate()
+                self.validate()
                 self.save_status()
 
     def train_epoch(self):
@@ -56,6 +56,7 @@ class Trainer:
         self.model.train()
 
         for data, label in self.train_loader:
+            print("batch")
             self.optimizer.zero_grad()
             self.model.zero_grad()
             if self.gpu_flag:
@@ -72,7 +73,7 @@ class Trainer:
 
         self.metrics["train_loss"].append(iter_loss / len(self.train_loader))
 
-    def evaluate(self):
+    def validate(self):
         val_loss = float(0.0)
         self.model.eval()
         with torch.no_grad():
@@ -100,7 +101,7 @@ class Trainer:
         else:
             optimizer = optim.Adam(
                 params=self.model.parameters(),
-                lr = self.config["lr"],
+                lr=self.config["lr"],
                 weight_decay=weight_decay
             )
         return optimizer

@@ -13,7 +13,7 @@ dataset_path = os.path.join(project_path, "data")
 train_dataset_path = os.path.join(dataset_path, "train")
 
 train_dataset = MarketDataset(root_dir=train_dataset_path,train=True)
-train_loader = DataLoader(dataset=train_dataset,batch_size=1)
+train_loader = DataLoader(dataset=train_dataset,batch_size=5,collate_fn=train_dataset.collate_fn)
 val_dataset = MarketDataset(root_dir=train_dataset_path,train=False)
 val_loader = DataLoader(dataset=train_dataset,batch_size=1)
 
@@ -28,7 +28,7 @@ conf = {
     "lr": 0.004,
     "device": "cpu",
     "result_path": os.path.join(project_path,"results"),
-    "batch_size": 16
+    "batch_size": 5
 }
 
 trainer = Trainer(model=ssd_model, criteria=criterion,train_loader=train_loader,val_loader=val_loader,config=conf)
