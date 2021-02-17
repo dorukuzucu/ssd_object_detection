@@ -61,7 +61,7 @@ class VGG16(nn.Module):
 
         self.conv_block_6_7 = ConvBlock(in_channels=512, out_channels=out_channels, pool=False)
 
-        self.load_trained_weights()
+        #self.load_trained_weights()
 
 
     def forward(self,x):
