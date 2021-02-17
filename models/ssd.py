@@ -8,6 +8,10 @@ class DetectionLayer(nn.Module):
     # TODO parameterize input and output channels
     def __init__(self,class_no):
         super(DetectionLayer, self).__init__()
+        """
+        Detection layer which will be used for confidence and localization layers.
+        This layer takes 5 inputs and forwards each input through a corresponding Conv2d layer
+        """
         self.class_no = class_no
 
         self.conv4 = nn.Conv2d(512, 4*self.class_no, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
@@ -50,9 +54,14 @@ class DetectionLayer(nn.Module):
         out_conv11 = out_conv11.permute(0, 2, 3, 1).contiguous()
         out_conv11 = out_conv11.view(out_conv11.size(0), -1, self.class_no)
         outs.append(out_conv11)
+
         return torch.cat(outs,1).contiguous()
 
     def _xavier_init(self):
+        """
+        A common CNN initialization method used by authors
+        Uniformly initializes Convolutional layer weights
+        """
         for child in self.children():
             if isinstance(child,nn.Conv2d):
                 nn.init.xavier_uniform_(child.weight)
@@ -60,13 +69,19 @@ class DetectionLayer(nn.Module):
 
 class SSD(nn.Module):
     def __init__(self,
-                 state,
                  ssd_model,
                  num_classes
                  ):
-        super(SSD, self).__init__()
+        """
+        Final SSD model. This model contains
+            VGG backbone
+            localization layers
+            confidence score layers
 
-        self.state = state
+        :param ssd_model: Either 300 or 500 as integer. will be used to initialize desired SDD variant.
+        :param num_classes: Number of classes to be detected
+        """
+        super(SSD, self).__init__()
         self.num_classes = num_classes
         self.size = ssd_model
         self.priors = generate_priors(300)

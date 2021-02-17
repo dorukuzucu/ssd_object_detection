@@ -56,12 +56,14 @@ class Trainer:
         self.model.train()
 
         for data, label in self.train_loader:
-            print("batch")
             self.optimizer.zero_grad()
             self.model.zero_grad()
             if self.gpu_flag:
                 data = data.to(torch.device('cuda:0'))
-                label = label.to(torch.device('cuda:0'))
+                label = {
+                    "boxes": [lbl.to(torch.device('cuda:0')) for lbl in label["boxes"]],
+                    "labels": [bx.to(torch.device('cuda:0')) for bx in label["labels"]]
+                }
 
             out = self.model(data)
             loss = self.criteria.calculate(out, label)

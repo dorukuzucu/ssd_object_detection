@@ -13,8 +13,6 @@ class MarketDataset(Dataset):
     """
     Dataset class for Market Dataset
     """
-    # TODO add collate method
-    # TODO check dataset-model output coordinates to match them
     def __init__(self,root_dir,
                 train=True,
                 transform=transforms.Compose([
@@ -74,7 +72,11 @@ class MarketDataset(Dataset):
             return dataset
 
     def _parse_xml_file(self,xml_file):
-
+        """
+        :param xml_file: XML file which is read with ElementTree
+            This file should have PascalVOC like object labels and locations
+        :return: class labels as string and bounding box coordinates as torch tensor
+        """
         img_width = int(xml_file.find("size").find("width").text)
         img_height = int(xml_file.find("size").find("height").text)
         resize_factor = torch.FloatTensor([img_width,img_height,img_width,img_height]).unsqueeze(0)
@@ -142,6 +144,10 @@ class MarketDataset(Dataset):
         return len(self.data_set)
 
     def __getitem__(self, idx):
+        """
+        Pytorch's Dataset class method should be overwritten while implementing it to a custom dataset.
+        This method should return a tuple containing images and labels
+        """
         if self.in_memory:
             return self.data_set[idx]
         else:

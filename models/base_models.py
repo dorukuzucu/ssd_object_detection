@@ -19,7 +19,8 @@ def conv2d_block(in_channels,out_channels, bn=False):
 
 class ConvBlock(nn.Module):
     """
-        Convolutional Block
+        Convolutional Block which is commonly used in many architectures.
+        This block contains 2x(Conv2d,bn and ReLU) and a final pooling layer
     """
     def __init__(self, in_channels,out_channels, bn=True, pool=True):
         super().__init__()
@@ -42,7 +43,9 @@ class ConvBlock(nn.Module):
 
 
 class VGG16(nn.Module):
-    # TODO load pretrained weights
+    """
+    VGG16 Model Implementation
+    """
     def __init__(self,in_channels,out_channels):
         super(VGG16, self).__init__()
         self.conv_block_1 = ConvBlock(in_channels=in_channels,out_channels=64)
@@ -73,19 +76,21 @@ class VGG16(nn.Module):
 
         x = self.conv_block_4(x)
         x = self.conv_2(x)
-        conv4 = x # value will be fed to SSD ratio to input:8
+        conv4 = x # value will be fed to SSD. ratio to input:8
         x = self.max_pool_2(x)
 
         x = self.conv_block_5(x)
         x = self.conv_3(x)
         x = self.max_pool_3(x)
 
-        conv7 = self.conv_block_6_7(x)  # value will be fed to SSD ratio to input:16
+        conv7 = self.conv_block_6_7(x)  # value will be fed to SSD. ratio to input:16
 
         return conv4,conv7
 
     def load_trained_weights(self):
-
+        """
+        This methods loads trained VGG16 weights to current VGG16 implementation
+        """
         state_dict = self.state_dict()
         params = list(state_dict)
 
@@ -103,6 +108,9 @@ class VGG16(nn.Module):
 
 
 class SSDExtension(nn.Module):
+    """
+    This class contains extra SSD layers that comes after VGG backbone layer
+    """
     def __init__(self,in_channels=1024,out_channels=256):
         super(SSDExtension, self).__init__()
         self.conv_8_1 = nn.Conv2d(in_channels, 256, kernel_size=(1, 1), stride=(1, 1))
@@ -138,6 +146,10 @@ class SSDExtension(nn.Module):
         return conv8,conv9,conv10,conv11
 
     def _xavier_init(self):
+        """
+        A common CNN initialization method used by authors
+        Uniformly initializes Convolutional layer weights
+        """
         for child in self.children():
             if isinstance(child,nn.Conv2d):
                 nn.init.xavier_uniform_(child.weight)

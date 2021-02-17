@@ -10,6 +10,8 @@ def generate_priors(image_size=300,
                     aspect_ratios=None):
     # TODO update feature maps, min_sizes, max_sizes for inputs size 5xx
     """
+    This method generate prior boxes for SSD Model. In total, there will be 8732 prior boxes
+
     :param image_size: input image size for SSD Model
     :param layer_sizes: Layer sizes for each feature map
     :param pool_ratios: pooling ratio for each feature map.
@@ -17,6 +19,7 @@ def generate_priors(image_size=300,
     :param min_sizes: minimum prior box size
     :param max_sizes: maximum prior box size
     :param aspect_ratios: ratio for prior box height and width
+
     :return: tensor of prior boxes
     """
     if aspect_ratios is None:

@@ -62,8 +62,7 @@ class MultiboxLoss():
         classes = target["labels"]
         b_box = target["boxes"]
 
-        assert location.size(0)==scores.size(0)==classes.size(0), "Mismatch on batch sizes"
-        assert location.size(2)==b_box.size(2), "Missing bounding box info"
+        assert location.size(0)==scores.size(0)==len(classes), "Mismatch on batch sizes"
         assert scores.size(2)==self.num_cls, "Number of classes do not match"
 
         num_priors = self.priors.size(0)
