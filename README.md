@@ -1,1 +1,1 @@
-# detection_transfer_learning
+# ssd object detection
