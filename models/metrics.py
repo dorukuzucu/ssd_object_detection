@@ -44,7 +44,6 @@ class MultiboxLoss():
         self.l1 = nn.L1Loss()
         self.ce = nn.CrossEntropyLoss(reduce=False)
 
-
     def calculate(self, preds, target):
         """
         :param preds: predictions. location: (batch_size, num_priors, 4), scores: (batch_size, num_priors, num_cls)
